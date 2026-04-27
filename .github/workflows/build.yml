@@ -94,46 +94,17 @@ jobs:
           keyPassword: ${{ secrets.KEY_PASSWORD }}
           zipAlign: true
 
-      - name: Sign Debug APK
-        env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-        if: ${{ env.SIGNING_KEY != '' }}
-        continue-on-error: true
-        uses: kevin-david/zipalign-sign-android-release@v2
-        id: sign_debug_app
-        with:
-          releaseDirectory: app/build/outputs/apk/debug
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-          zipAlign: true
+      - name: Rename APK
+        run: |
+          SHORT="${GITHUB_SHA::7}"
+          APK=$(find app/build/outputs/apk/release -name "*.apk" -type f | head -1)
+          [ -n "$APK" ] && mv "$APK" "Apatch-Release-${SHORT}.apk"
 
-      - name: Upload mappings
-        uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v4
         with:
-          name: "mappings"
-          path: "app/build/outputs/mapping/release/"
-
-      - name: Upload build artifact1
-        env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-        if: ${{ env.SIGNING_KEY != '' }}
-        uses: actions/upload-artifact@v6
-        with:
-          name: APatch-Release
-          path: |
-            ${{ steps.sign_app.outputs.signedReleaseFile }}
-
-      - name: Upload build artifact2
-        env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-        if: ${{ env.SIGNING_KEY != '' }}
-        uses: actions/upload-artifact@v6
-        with:
-          name: APatch-Debug
-          path: |
-            ${{ steps.sign_debug_app.outputs.signedReleaseFile }}
+          name: Apatch-release-${{ github.sha }}
+          path: Apatch-Release-*.apk
+          retention-days: 90
 
       - name: Post to channel
         if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.ref_type != 'tag' }}
