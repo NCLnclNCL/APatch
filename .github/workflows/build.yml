@@ -24,6 +24,7 @@ on:
 jobs:
   build-manager:
     runs-on: ubuntu-latest
+    environment: sign
     permissions:
       contents: write
     steps:
@@ -78,10 +79,10 @@ jobs:
           echo "BUILD_TOOL_VERSION=$(ls /usr/local/lib/android/sdk/build-tools/ | tail -n 1)" >> $GITHUB_ENV
 
       - name: Sign Release
+
+        if: ${{ env.SIGNING_KEY != '' }}
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-          BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION }}
-        if: ${{ env.SIGNING_KEY != '' }}
         continue-on-error: true
         uses: kevin-david/zipalign-sign-android-release@v2
         id: sign_app
@@ -96,7 +97,6 @@ jobs:
       - name: Sign Debug APK
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-          BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION }}
         if: ${{ env.SIGNING_KEY != '' }}
         continue-on-error: true
         uses: kevin-david/zipalign-sign-android-release@v2
