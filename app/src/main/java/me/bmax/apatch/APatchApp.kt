@@ -245,25 +245,6 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
         super.onCreate()
         apApp = this
 
-        val isArm64 = Build.SUPPORTED_ABIS.any { it == "arm64-v8a" }
-        if (!isArm64) {
-            Toast.makeText(applicationContext, "Unsupported architecture!", Toast.LENGTH_LONG)
-                .show()
-            Thread.sleep(5000)
-            exitProcess(0)
-        }
-
-        if (!BuildConfig.DEBUG && !verifyAppSignature("1x2twMoHvfWUODv7KkRRNKBzOfEqJwRKGzJpgaz18xk=")) {
-            while (true) {
-                val intent = Intent(Intent.ACTION_DELETE)
-                intent.data = "package:$packageName".toUri()
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
-                startActivity(intent)
-                exitProcess(0)
-            }
-        }
-
         // TODO: We can't totally protect superkey from be stolen by root or LSPosed-like injection tools in user space, the only way is don't use superkey,
         // TODO: 1. make me root by kernel
         // TODO: 2. remove all usage of superkey
